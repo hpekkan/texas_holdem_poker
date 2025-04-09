@@ -15,7 +15,7 @@ This repository contains a full implementation of Texas Hold'em Poker with multi
 
 ### Game Modes
 - Single player against multiple AI opponents
-- 
+  
 ### Gameplay Features
 - Realistic card evaluation and hand strength calculations
 - Professional-looking poker table visualization using p5.js
