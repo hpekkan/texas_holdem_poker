@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Texas Hold'em AI Simulation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background-color: #1a1a1a;
+        font-family: Arial, sans-serif;
+        color: white;
+      }
+      
+      #header {
+        padding: 15px;
+        background-color: #333;
+        text-align: center;
+      }
+      
+      #sim-container {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+      
+      #control-panel {
+        width: 300px;
+        padding: 15px;
+        background-color: #2a2a2a;
+        overflow-y: auto;
+      }
+      
+      #sim-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      #sim-canvas {
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+      }
+      
+      #sim-stats {
+        height: 250px;
+        padding: 15px;
+        background-color: #2a2a2a;
+        overflow-y: auto;
+      }
+      
+      button, select {
+        padding: 8px 12px;
+        margin: 5px 0;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+      }
+      
+      button:hover {
+        background-color: #2980b9;
+      }
+      
+      button:disabled {
+        background-color: #95a5a6;
+        cursor: not-allowed;
+      }
+      
+      .control-group {
+        margin-bottom: 15px;
+        border-bottom: 1px solid #444;
+        padding-bottom: 15px;
+      }
+      
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #ddd;
+      }
+      
+      input[type="number"] {
+        width: 100%;
+        padding: 8px;
+        background-color: #333;
+        border: 1px solid #444;
+        color: white;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+      
+      .stat-card {
+        background-color: #333;
+        border-radius: 4px;
+        padding: 10px;
+        margin: 5px 0 15px 0;
+      }
+      
+      .progress-bar {
+        height: 10px;
+        background-color: #444;
+        border-radius: 5px;
+        margin-top: 5px;
+      }
+      
+      .progress-bar-fill {
+        height: 100%;
+        background-color: #3498db;
+        border-radius: 5px;
+        width: 0%;
+        transition: width 0.3s;
+      }
+      
+      .metric-row {
+        display: flex;
+        justify-content: space-between;
+        margin: 5px 0;
+        font-size: 14px;
+      }
+      
+      .strategy-label {
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
+      
+      .chip-positive {
+        color: #2ecc71;
+      }
+      
+      .chip-negative {
+        color: #e74c3c;
+      }
+      
+      #sim-log {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        height: 120px;
+        background-color: rgba(0, 0, 0, 0.7);
+        border-radius: 5px;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 12px;
+        overflow-y: auto;
+      }
+      
+      .log-entry {
+        margin: 3px 0;
+        color: #aaa;
+      }
+      
+      .chart-title {
+        text-align: center;
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header">
+      <h1>Texas Hold'em AI Simulation</h1>
+    </div>
+    
+    <div id="sim-container">
+      <div id="control-panel">
+        <h2>Simulation Controls</h2>
+        
+        <div class="control-group">
+          <label for="num-games">Number of Games:</label>
+          <input type="number" id="num-games" value="10" min="1" max="1000">
+          
+          <label for="num-hands">Hands per Game:</label>
+          <input type="number" id="num-hands" value="20" min="1" max="1000">
+          
+          <label for="initial-chips">Initial Chips:</label>
+          <input type="number" id="initial-chips" value="1000" min="100" step="100">
+          
+          <label for="small-blind">Small Blind:</label>
+          <input type="number" id="small-blind" value="5" min="1">
+          
+          <label for="big-blind">Big Blind:</label>
+          <input type="number" id="big-blind" value="10" min="2">
+        </div>
+        
+        <div class="control-group">
+          <h3>Player Selection</h3>
+          
+          <label for="player1-strategy">Player 1 Strategy:</label>
+          <select id="player1-strategy"></select>
+          
+          <label for="player2-strategy">Player 2 Strategy:</label>
+          <select id="player2-strategy"></select>
+          
+          <label for="player3-strategy">Player 3 Strategy:</label>
+          <select id="player3-strategy"></select>
+        </div>
+        
+        <div class="control-group">
+          <button id="start-sim">Start Simulation</button>
+          <button id="stop-sim" disabled>Stop Simulation</button>
+          <button id="reset-sim" disabled>Reset</button>
+        </div>
+        
+        <div id="sim-progress">
+          <h3>Simulation Progress</h3>
+          <div class="progress-bar">
+            <div id="progress-fill" class="progress-bar-fill"></div>
+          </div>
+          <p id="progress-text">Ready to start</p>
+        </div>
+      </div>
+      
+      <div id="sim-content">
+        <div id="sim-canvas">
+          <!-- Simulation visualization will be placed here -->
+          <div id="sim-log"></div>
+        </div>
+        
+        <div id="sim-stats">
+          <h2>Simulation Statistics</h2>
+          <div id="stat-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Core game scripts -->
+    <script src="card.js"></script>
+    <script src="deck.js"></script>
+    <script src="player.js"></script>
+    <script src="ai_player.js"></script>
+    <script src="hand_evaluator.js"></script>
+    <script src="game.js"></script>
+    <script src="logger.js"></script>
+    
+    <!-- Simulation specific scripts -->
+    <script src="ai_simulation.js"></script>
+    <script src="simulation_ui.js"></script>
+  </body>
+</html>
